@@ -1,0 +1,415 @@
+.temples-page {
+
+  max-width: 1200px;
+
+  margin: 0 auto;
+
+  padding: 70px 30px;
+
+  background: #fffaf2;
+
+}
+
+.temples-header {
+
+  text-align: center;
+
+  margin-bottom: 40px;
+
+}
+
+.temples-header p {
+
+  margin: 0 0 12px;
+
+  color: #a65f32;
+
+  font-size: 14px;
+
+  font-weight: 700;
+
+  letter-spacing: 2px;
+
+}
+
+.temples-header h1 {
+
+  margin: 0 0 15px;
+
+  color: #4b2415;
+
+  font-size: 48px;
+
+  line-height: 1.1;
+
+}
+
+.temples-header span {
+
+  display: block;
+
+  max-width: 700px;
+
+  margin: 0 auto;
+
+  color: #6f625d;
+
+  font-size: 17px;
+
+  line-height: 1.7;
+
+}
+
+
+/* FILTER AREA */
+
+.temple-filters {
+
+  display: flex;
+
+  justify-content: center;
+
+  gap: 15px;
+
+  margin-bottom: 20px;
+
+}
+
+.temple-filters input,
+
+.temple-filters select {
+
+  height: 48px;
+
+  border: 1px solid #dfc9b8;
+
+  border-radius: 10px;
+
+  background: white;
+
+  color: #4b2415;
+
+  font-size: 15px;
+
+  padding: 0 16px;
+
+  outline: none;
+
+}
+
+.temple-filters input {
+
+  width: 420px;
+
+}
+
+.temple-filters select {
+
+  width: 190px;
+
+  cursor: pointer;
+
+}
+
+.temple-filters input:focus,
+
+.temple-filters select:focus {
+
+  border-color: #a65f32;
+
+}
+
+
+/* RESULT COUNT */
+
+.temples-result {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  max-width: 1100px;
+
+  margin: 0 auto 30px;
+
+  color: #8a7064;
+
+  font-size: 15px;
+
+  font-weight: 600;
+
+}
+
+
+/* TEMPLE GRID */
+
+.all-temples-grid {
+
+  display: grid;
+
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 25px;
+
+}
+
+
+/* TEMPLE CARD */
+
+.temple-list-card {
+
+  overflow: hidden;
+
+  background: #ffffff;
+
+  border: 1px solid #eadbd0;
+
+  border-radius: 16px;
+
+  box-shadow: 0 8px 25px rgba(76, 39, 22, 0.08);
+
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+}
+
+.temple-list-card:hover {
+
+  transform: translateY(-6px);
+
+  box-shadow: 0 15px 35px rgba(76, 39, 22, 0.14);
+
+}
+
+
+/* IMAGE AREA */
+
+.temple-list-image {
+
+  height: 190px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  background: linear-gradient(135deg, #f5dfc8, #ead0b7);
+
+  font-size: 70px;
+
+}
+
+
+/* CARD CONTENT */
+
+.temple-list-content {
+
+  padding: 24px;
+
+}
+
+.state-tag {
+
+  display: inline-block;
+
+  padding: 6px 10px;
+
+  border-radius: 20px;
+
+  background: #f7eadf;
+
+  color: #a65f32;
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+}
+
+.temple-list-content h2 {
+
+  margin: 14px 0 8px;
+
+  color: #3e2116;
+
+  font-size: 22px;
+
+  line-height: 1.3;
+
+}
+
+.temple-location {
+
+  margin: 0 0 14px;
+
+  color: #8a7064;
+
+  font-size: 14px;
+
+}
+
+.temple-description {
+
+  min-height: 68px;
+
+  margin: 0 0 20px;
+
+  color: #665851;
+
+  font-size: 14px;
+
+  line-height: 1.6;
+
+}
+
+
+/* TEMPLE CARD BUTTONS */
+
+.temple-card-buttons {
+
+  display: flex;
+
+  gap: 10px;
+
+  flex-wrap: wrap;
+
+}
+
+.temple-card-buttons button {
+
+  border: none;
+
+  padding: 11px 15px;
+
+  background: #8d3f22;
+
+  color: white;
+
+  border-radius: 7px;
+
+  font-size: 14px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: background 0.2s ease;
+
+}
+
+.temple-card-buttons button:hover {
+
+  background: #682c18;
+
+}
+
+
+/* SAVE BUTTON */
+
+.temple-card-buttons .save-button {
+
+  background: #f3dfca;
+
+  color: #5d2f1d;
+
+  border: 1px solid #e2c7ad;
+
+}
+
+.temple-card-buttons .save-button:hover {
+
+  background: #e8ceb3;
+
+}
+
+
+/* NO RESULTS */
+
+.no-results {
+
+  text-align: center;
+
+  padding: 60px 20px;
+
+  color: #6f625d;
+
+}
+
+.no-results h2 {
+
+  color: #4b2415;
+
+}
+
+
+/* MOBILE */
+
+@media (max-width: 900px) {
+
+  .all-temples-grid {
+
+    grid-template-columns: repeat(2, 1fr);
+
+  }
+
+}
+
+@media (max-width: 650px) {
+
+  .temples-page {
+
+    padding: 50px 18px;
+
+  }
+
+  .temples-header h1 {
+
+    font-size: 36px;
+
+  }
+
+  .temple-filters {
+
+    flex-direction: column;
+
+  }
+
+  .temple-filters input,
+
+  .temple-filters select {
+
+    width: 100%;
+
+  }
+
+  .all-temples-grid {
+
+    grid-template-columns: 1fr;
+
+  }
+
+  .temples-result {
+
+    flex-direction: column;
+
+    gap: 8px;
+
+    text-align: center;
+
+  }
+
+  .temple-card-buttons {
+
+    flex-direction: column;
+
+  }
+
+  .temple-card-buttons button {
+
+    width: 100%;
+
+  }
+
+}

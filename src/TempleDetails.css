@@ -1,0 +1,489 @@
+* {
+  box-sizing: border-box;
+}
+
+
+/* =========================================
+   TEMPLE DETAILS PAGE
+========================================= */
+
+.details-page {
+  width: 100%;
+  max-width: 1250px;
+
+  margin: 0 auto;
+
+  padding: 50px 30px 80px;
+
+  background: #fffaf2;
+}
+
+
+/* =========================================
+   BACK BUTTON
+========================================= */
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+
+  border: none;
+
+  padding: 10px 0;
+
+  background: transparent;
+
+  color: #8d3f22;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  margin-bottom: 25px;
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.back-button:hover {
+  color: #682c18;
+
+  transform: translateX(-3px);
+}
+
+
+/* =========================================
+   DETAILS HERO
+========================================= */
+
+.details-hero {
+  display: flex;
+  align-items: center;
+
+  gap: 30px;
+
+  padding: 40px;
+
+  margin-bottom: 35px;
+
+  border-radius: 22px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f5dfc8,
+      #ead0b7
+    );
+
+  border: 1px solid #eadbd0;
+
+  box-shadow:
+    0 10px 30px rgba(76, 39, 22, 0.08);
+}
+
+
+/* =========================================
+   TEMPLE ICON
+========================================= */
+
+.details-icon {
+  width: 135px;
+  height: 135px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: white;
+
+  border: 1px solid #eadbd0;
+
+  border-radius: 22px;
+
+  font-size: 68px;
+
+  box-shadow:
+    0 6px 18px rgba(76, 39, 22, 0.08);
+}
+
+
+/* =========================================
+   STATE
+========================================= */
+
+.details-state {
+  display: inline-block;
+
+  margin-bottom: 6px;
+
+  color: #8d3f22;
+
+  font-size: 13px;
+
+  font-weight: 800;
+
+  text-transform: uppercase;
+
+  letter-spacing: 1.5px;
+}
+
+
+/* =========================================
+   TEMPLE TITLE
+========================================= */
+
+.details-hero h1 {
+  margin: 8px 0 12px;
+
+  color: #3e2116;
+
+  font-size: 44px;
+
+  line-height: 1.15;
+}
+
+
+/* =========================================
+   CITY + DEITY
+========================================= */
+
+.details-hero p {
+  margin: 0;
+
+  color: #6f625d;
+
+  font-size: 17px;
+
+  line-height: 1.6;
+}
+
+
+/* =========================================
+   DETAILS GRID
+========================================= */
+
+.details-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 24px;
+}
+
+
+/* =========================================
+   DETAILS CARD
+========================================= */
+
+.details-card {
+  min-width: 0;
+
+  padding: 28px;
+
+  background: white;
+
+  border: 1px solid #eadbd0;
+
+  border-radius: 18px;
+
+  box-shadow:
+    0 8px 25px rgba(76, 39, 22, 0.07);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.details-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 12px 30px rgba(76, 39, 22, 0.10);
+}
+
+
+/* =========================================
+   CARD HEADING
+========================================= */
+
+.details-card h2 {
+  margin: 0 0 15px;
+
+  color: #4b2415;
+
+  font-size: 21px;
+
+  line-height: 1.35;
+}
+
+
+/* =========================================
+   CARD TEXT
+========================================= */
+
+.details-card p {
+  margin: 0;
+
+  color: #665851;
+
+  font-size: 15px;
+
+  line-height: 1.75;
+
+  overflow-wrap: anywhere;
+}
+
+
+/* =========================================
+   LIST
+========================================= */
+
+.details-card ul {
+  margin: 0;
+
+  padding-left: 20px;
+}
+
+.details-card li {
+  margin-bottom: 8px;
+
+  color: #665851;
+
+  font-size: 15px;
+
+  line-height: 1.7;
+
+  overflow-wrap: anywhere;
+}
+
+.details-card li:last-child {
+  margin-bottom: 0;
+}
+
+
+/* =========================================
+   SMALL NOTE
+========================================= */
+
+.details-card small {
+  display: block;
+
+  margin-top: 15px;
+
+  color: #9a8980;
+
+  font-size: 13px;
+
+  line-height: 1.6;
+}
+
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 950px) {
+
+  .details-page {
+    padding: 40px 25px 70px;
+  }
+
+  .details-hero {
+    padding: 32px;
+  }
+
+  .details-hero h1 {
+    font-size: 38px;
+  }
+
+  .details-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 18px;
+  }
+
+  .details-card {
+    padding: 24px;
+  }
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 700px) {
+
+  .details-page {
+    padding: 30px 18px 60px;
+  }
+
+
+  /* HERO */
+
+  .details-hero {
+    flex-direction: column;
+
+    align-items: center;
+
+    text-align: center;
+
+    gap: 20px;
+
+    padding: 28px 20px;
+
+    border-radius: 18px;
+  }
+
+
+  /* ICON */
+
+  .details-icon {
+    width: 110px;
+    height: 110px;
+
+    border-radius: 18px;
+
+    font-size: 55px;
+  }
+
+
+  /* TITLE */
+
+  .details-hero h1 {
+    margin: 7px 0 10px;
+
+    font-size: 32px;
+
+    line-height: 1.2;
+
+    overflow-wrap: anywhere;
+  }
+
+
+  /* LOCATION */
+
+  .details-hero p {
+    font-size: 15px;
+
+    line-height: 1.6;
+  }
+
+
+  /* GRID */
+
+  .details-grid {
+    grid-template-columns: 1fr;
+
+    gap: 18px;
+  }
+
+
+  /* CARD */
+
+  .details-card {
+    padding: 23px 20px;
+
+    border-radius: 16px;
+  }
+
+
+  .details-card h2 {
+    font-size: 20px;
+  }
+
+
+  .details-card p,
+  .details-card li {
+    font-size: 15px;
+
+    line-height: 1.7;
+  }
+}
+
+
+/* =========================================
+   SMALL MOBILE
+========================================= */
+
+@media (max-width: 450px) {
+
+  .details-page {
+    padding: 25px 14px 50px;
+  }
+
+
+  .back-button {
+    font-size: 14px;
+
+    margin-bottom: 20px;
+  }
+
+
+  .details-hero {
+    padding: 25px 16px;
+
+    gap: 17px;
+  }
+
+
+  .details-icon {
+    width: 95px;
+    height: 95px;
+
+    font-size: 48px;
+  }
+
+
+  .details-state {
+    font-size: 11px;
+
+    letter-spacing: 1px;
+  }
+
+
+  .details-hero h1 {
+    font-size: 27px;
+  }
+
+
+  .details-hero p {
+    font-size: 14px;
+  }
+
+
+  .details-grid {
+    gap: 15px;
+  }
+
+
+  .details-card {
+    padding: 20px 17px;
+  }
+
+
+  .details-card h2 {
+    font-size: 18px;
+
+    margin-bottom: 12px;
+  }
+
+
+  .details-card p,
+  .details-card li {
+    font-size: 14px;
+
+    line-height: 1.65;
+  }
+
+
+  .details-card small {
+    font-size: 12px;
+  }
+}

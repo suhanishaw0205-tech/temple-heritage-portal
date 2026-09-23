@@ -1,0 +1,223 @@
+.festivals-page {
+  padding: 80px 6%;
+
+  background: #fffaf2;
+  color: #3e2116;
+}
+
+
+/* HEADER */
+
+.festivals-header {
+  max-width: 800px;
+
+  margin: 0 auto 50px;
+
+  text-align: center;
+}
+
+.festivals-header p {
+  margin-bottom: 12px;
+
+  color: #a65f32;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  letter-spacing: 2px;
+}
+
+.festivals-header h1 {
+  margin: 0 0 18px;
+
+  color: #4b2415;
+
+  font-size: 48px;
+}
+
+.festivals-header span {
+  color: #6f625d;
+
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+
+/* FESTIVAL GRID */
+
+.festivals-grid {
+  max-width: 1100px;
+
+  margin: 0 auto;
+
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 25px;
+}
+
+
+/* CARD */
+
+.festival-detail-card {
+  padding: 30px;
+
+  background: white;
+
+  border: 1px solid #eadbd0;
+
+  border-radius: 16px;
+
+  box-shadow: 0 8px 25px rgba(76, 39, 22, 0.08);
+
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.festival-detail-card:hover {
+  transform: translateY(-5px);
+
+  box-shadow: 0 12px 30px rgba(76, 39, 22, 0.13);
+}
+
+
+/* ICON */
+
+.festival-detail-icon {
+  width: 65px;
+  height: 65px;
+
+  margin-bottom: 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #f3dfca;
+
+  border-radius: 50%;
+
+  font-size: 32px;
+}
+
+
+/* PLACE */
+
+.festival-place {
+  color: #a65f32;
+
+  font-size: 13px;
+
+  font-weight: 700;
+}
+
+
+/* TITLE */
+
+.festival-detail-card h2 {
+  margin: 8px 0 25px;
+
+  color: #4b2415;
+
+  font-size: 26px;
+}
+
+
+/* INFORMATION */
+
+.festival-detail-info {
+  display: grid;
+
+  gap: 20px;
+}
+
+.festival-detail-info div {
+  padding-left: 15px;
+
+  border-left: 3px solid #e2b889;
+}
+
+.festival-detail-info h3 {
+  margin: 0 0 7px;
+
+  color: #5d2f1d;
+
+  font-size: 16px;
+}
+
+.festival-detail-info p {
+  margin: 0;
+
+  color: #6f625d;
+
+  font-size: 14px;
+
+  line-height: 1.7;
+}
+
+
+/* NOTE */
+
+.festival-note {
+  max-width: 1000px;
+
+  margin: 50px auto 0;
+
+  padding: 30px;
+
+  background: #f3dfca;
+
+  border-left: 5px solid #8d3f22;
+
+  border-radius: 12px;
+}
+
+.festival-note h2 {
+  margin: 0 0 10px;
+
+  color: #4b2415;
+
+  font-size: 23px;
+}
+
+.festival-note p {
+  margin: 0;
+
+  color: #5d4035;
+
+  line-height: 1.7;
+}
+
+
+/* TABLET */
+
+@media (max-width: 850px) {
+
+  .festivals-grid {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+
+/* MOBILE */
+
+@media (max-width: 550px) {
+
+  .festivals-page {
+    padding: 60px 20px;
+  }
+
+  .festivals-header h1 {
+    font-size: 36px;
+  }
+
+  .festival-detail-card {
+    padding: 24px;
+  }
+
+  .festival-note {
+    padding: 22px;
+  }
+
+}

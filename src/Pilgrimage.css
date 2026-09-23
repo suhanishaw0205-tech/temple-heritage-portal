@@ -1,0 +1,268 @@
+.pilgrimage-page {
+  padding: 80px 6%;
+
+  background: #fffaf2;
+  color: #3e2116;
+}
+
+
+/* HEADER */
+
+.pilgrimage-header {
+  max-width: 800px;
+
+  margin: 0 auto 50px;
+
+  text-align: center;
+}
+
+.pilgrimage-header p {
+  margin-bottom: 12px;
+
+  color: #a65f32;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  letter-spacing: 2px;
+}
+
+.pilgrimage-header h1 {
+  margin: 0 0 18px;
+
+  color: #4b2415;
+
+  font-size: 48px;
+}
+
+.pilgrimage-header span {
+  color: #6f625d;
+
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+
+/* PILGRIMAGE GRID */
+
+.pilgrimage-grid {
+  max-width: 1100px;
+
+  margin: 0 auto;
+
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 25px;
+}
+
+
+/* CARD */
+
+.pilgrimage-card {
+  padding: 30px;
+
+  background: white;
+
+  border: 1px solid #eadbd0;
+
+  border-radius: 16px;
+
+  box-shadow: 0 8px 25px rgba(76, 39, 22, 0.08);
+
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pilgrimage-card:hover {
+  transform: translateY(-5px);
+
+  box-shadow: 0 12px 30px rgba(76, 39, 22, 0.13);
+}
+
+
+/* ICON */
+
+.pilgrimage-icon {
+  width: 65px;
+  height: 65px;
+
+  margin-bottom: 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #f3dfca;
+
+  border-radius: 50%;
+
+  font-size: 32px;
+}
+
+
+/* LOCATION */
+
+.pilgrimage-location {
+  color: #a65f32;
+
+  font-size: 13px;
+
+  font-weight: 700;
+}
+
+
+/* TITLE */
+
+.pilgrimage-card h2 {
+  margin: 8px 0 25px;
+
+  color: #4b2415;
+
+  font-size: 26px;
+}
+
+
+/* INFORMATION */
+
+.pilgrimage-info {
+  display: grid;
+
+  gap: 18px;
+}
+
+.pilgrimage-info div {
+  padding-left: 15px;
+
+  border-left: 3px solid #e2b889;
+}
+
+.pilgrimage-info h3 {
+  margin: 0 0 5px;
+
+  color: #5d2f1d;
+
+  font-size: 16px;
+}
+
+.pilgrimage-info p {
+  margin: 0;
+
+  color: #6f625d;
+
+  font-size: 14px;
+
+  line-height: 1.6;
+}
+
+
+/* TRAVEL TIPS */
+
+.travel-tips {
+  max-width: 1100px;
+
+  margin: 55px auto 0;
+
+  padding: 35px;
+
+  background: #f3dfca;
+
+  border-radius: 16px;
+}
+
+.travel-tips h2 {
+  margin: 0 0 25px;
+
+  color: #4b2415;
+
+  font-size: 27px;
+}
+
+
+/* TIPS GRID */
+
+.tips-grid {
+  display: grid;
+
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 20px;
+}
+
+.tips-grid div {
+  padding: 20px;
+
+  background: rgba(255, 255, 255, 0.65);
+
+  border-radius: 12px;
+}
+
+.tips-grid span {
+  color: #a65f32;
+
+  font-size: 13px;
+
+  font-weight: 700;
+}
+
+.tips-grid p {
+  margin: 10px 0 0;
+
+  color: #5d4035;
+
+  font-size: 14px;
+
+  line-height: 1.6;
+}
+
+.travel-tips small {
+  display: block;
+
+  margin-top: 25px;
+
+  color: #6f625d;
+
+  line-height: 1.6;
+}
+
+
+/* TABLET */
+
+@media (max-width: 850px) {
+
+  .pilgrimage-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tips-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+}
+
+
+/* MOBILE */
+
+@media (max-width: 550px) {
+
+  .pilgrimage-page {
+    padding: 60px 20px;
+  }
+
+  .pilgrimage-header h1 {
+    font-size: 36px;
+  }
+
+  .pilgrimage-card {
+    padding: 24px;
+  }
+
+  .tips-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .travel-tips {
+    padding: 25px;
+  }
+
+}
