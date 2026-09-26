@@ -4,11 +4,26 @@ import { MongoClient, ObjectId } from 'mongodb'
 
 const app = express()
 
-const PORT = 5000
-const MONGODB_URI = 'mongodb://127.0.0.1:27017'
-const DATABASE_NAME = 'temple_heritage_portal'
+const PORT = Number(process.env.PORT) || 5000
 
-app.use(cors())
+const MONGODB_URI =
+  process.env.MONGODB_URI ||
+  'mongodb://127.0.0.1:27017'
+
+const DATABASE_NAME =
+  process.env.DATABASE_NAME ||
+  'temple_heritage_portal'
+
+const CORS_ORIGIN =
+  process.env.CORS_ORIGIN ||
+  'http://localhost:5173'
+
+app.use(
+  cors({
+    origin: CORS_ORIGIN
+  })
+)
+
 app.use(express.json())
 
 const client = new MongoClient(MONGODB_URI)
@@ -568,6 +583,178 @@ app.delete('/api/pilgrimage/:id', async (req, res) => {
 })
 
 // ==============================
+// CONTENT ACCURACY FEEDBACK APIs
+// ==============================
+
+// GET all content accuracy feedback
+app.get('/api/feedback', async (req, res) => {
+  try {
+    const feedback = await db
+      .collection('feedback')
+      .find({})
+      .sort({ createdAt: -1 })
+      .toArray()
+
+    res.json({
+      success: true,
+      feedback
+    })
+  } catch (error) {
+    console.error(error)
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch feedback'
+    })
+  }
+})
+
+// POST new content accuracy feedback
+app.post('/api/feedback', async (req, res) => {
+  try {
+    const {
+      templeId,
+      templeName,
+      city,
+      state,
+      userName,
+      userEmail,
+      message
+    } = req.body
+
+    if (
+      !templeName ||
+      !userName ||
+      !userEmail ||
+      !message
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Temple, user and feedback details are required'
+      })
+    }
+
+    const newFeedback = {
+      templeId: templeId || null,
+      templeName,
+      city: city || '',
+      state: state || '',
+      userName,
+      userEmail,
+      message,
+      status: 'Pending',
+      createdAt: new Date()
+    }
+
+    const result = await db
+      .collection('feedback')
+      .insertOne(newFeedback)
+
+    res.status(201).json({
+      success: true,
+      message: 'Content accuracy feedback submitted successfully',
+      feedback: {
+        ...newFeedback,
+        _id: result.insertedId
+      }
+    })
+  } catch (error) {
+    console.error(error)
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to submit feedback'
+    })
+  }
+})
+
+// PUT feedback status
+app.put('/api/feedback/:id', async (req, res) => {
+  try {
+    const feedbackId = req.params.id
+    const { status } = req.body
+
+    const allowedStatuses = [
+      'Pending',
+      'Reviewed',
+      'Resolved'
+    ]
+
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid feedback status'
+      })
+    }
+
+    const result = await db
+      .collection('feedback')
+      .updateOne(
+        {
+          _id: new ObjectId(feedbackId)
+        },
+        {
+          $set: {
+            status,
+            updatedAt: new Date()
+          }
+        }
+      )
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Feedback not found'
+      })
+    }
+
+    res.json({
+      success: true,
+      message: 'Feedback status updated successfully'
+    })
+  } catch (error) {
+    console.error(error)
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update feedback status'
+    })
+  }
+})
+
+// DELETE feedback
+app.delete('/api/feedback/:id', async (req, res) => {
+  try {
+    const feedbackId = req.params.id
+
+    const result = await db
+      .collection('feedback')
+      .deleteOne({
+        _id: new ObjectId(feedbackId)
+      })
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Feedback not found'
+      })
+    }
+
+    res.json({
+      success: true,
+      message: 'Feedback deleted successfully'
+    })
+  } catch (error) {
+    console.error(error)
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete feedback'
+    })
+  }
+})
+
+// ==============================
 // START SERVER
 // ==============================
 
@@ -579,14 +766,17 @@ async function startServer() {
 
     console.log('MongoDB connected successfully')
     console.log(`Database: ${DATABASE_NAME}`)
-
-    app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`)
-    })
+    console.log(`Server running on port ${PORT}`)
   } catch (error) {
     console.error('MongoDB connection failed')
     console.error(error)
+
+    process.exit(1)
   }
+
+  app.listen(PORT, () => {
+    console.log('Express server started successfully')
+  })
 }
 
 startServer()

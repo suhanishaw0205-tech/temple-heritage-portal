@@ -1,27 +1,222 @@
 import { useEffect, useState } from 'react'
 import './App.css'
+import API_BASE_URL from './config'
 import Temples from './Temples'
 import Guidelines from './Guidelines'
 import Pilgrimage from './Pilgrimage'
 import Festivals from './Festivals'
 import SavedTemples from './SavedTemples'
 import Admin from './Admin'
+import Auth from './Auth'
+import LearningHub from './LearningHub'
 
 function App() {
-  const [activeSection, setActiveSection] = useState('home')
+  const [activeSection, setActiveSection] =
+    useState('home')
+
+  const [currentUser, setCurrentUser] = useState(() => {
+    const savedUser =
+      localStorage.getItem('heritageCurrentUser')
+
+    return savedUser
+      ? JSON.parse(savedUser)
+      : null
+  })
 
   const [temples, setTemples] = useState([])
-  const [isLoadingTemples, setIsLoadingTemples] = useState(true)
+  const [isLoadingTemples, setIsLoadingTemples] =
+    useState(true)
 
-  const [savedTemples, setSavedTemples] = useState([])
+  const [savedTemples, setSavedTemples] =
+    useState([])
 
-  const [templeApprovalStatus, setTempleApprovalStatus] = useState({})
+  const [templeApprovalStatus, setTempleApprovalStatus] =
+    useState({})
 
-  const [festivals, setFestivals] = useState([])
-  const [isLoadingFestivals, setIsLoadingFestivals] = useState(true)
+  const [festivals, setFestivals] =
+    useState([])
 
-  const [pilgrimagePlaces, setPilgrimagePlaces] = useState([])
-  const [isLoadingPilgrimage, setIsLoadingPilgrimage] = useState(true)
+  const [isLoadingFestivals, setIsLoadingFestivals] =
+    useState(true)
+
+  const [pilgrimagePlaces, setPilgrimagePlaces] =
+    useState([])
+
+  const [isLoadingPilgrimage, setIsLoadingPilgrimage] =
+    useState(true)
+
+  // =========================================
+  // SAVED TEMPLES STORAGE HELPERS
+  // =========================================
+
+  function getSavedTemplesStorageKey(
+    user = currentUser
+  ) {
+    if (!user?.email) {
+      return null
+    }
+
+    return `heritageSavedTemples_${user.email}`
+  }
+
+  function loadSavedTemplesFromStorage(
+    user = currentUser
+  ) {
+    const storageKey =
+      getSavedTemplesStorageKey(user)
+
+    if (!storageKey) {
+      return []
+    }
+
+    try {
+      const storedSavedTemples =
+        localStorage.getItem(storageKey)
+
+      if (!storedSavedTemples) {
+        return []
+      }
+
+      const parsedSavedTemples =
+        JSON.parse(storedSavedTemples)
+
+      return Array.isArray(parsedSavedTemples)
+        ? parsedSavedTemples
+        : []
+    } catch (error) {
+      console.error(
+        'Failed to load saved temples from browser storage:',
+        error
+      )
+
+      return []
+    }
+  }
+
+  function saveSavedTemplesToStorage(
+    nextSavedTemples,
+    user = currentUser
+  ) {
+    const storageKey =
+      getSavedTemplesStorageKey(user)
+
+    if (!storageKey) {
+      return
+    }
+
+    try {
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify(nextSavedTemples)
+      )
+    } catch (error) {
+      console.error(
+        'Failed to save saved temples to browser storage:',
+        error
+      )
+    }
+  }
+
+  // =========================================
+  // LOAD SAVED TEMPLES FOR CURRENT USER
+  // =========================================
+
+  useEffect(() => {
+    if (!currentUser?.email) {
+      setSavedTemples([])
+      return
+    }
+
+    const loadedSavedTemples =
+      loadSavedTemplesFromStorage(
+        currentUser
+      )
+
+    setSavedTemples(
+      loadedSavedTemples
+    )
+  }, [currentUser?.email])
+
+  // =========================================
+  // SYNC SAVED TEMPLES WITH APPROVED TEMPLES
+  // =========================================
+
+  useEffect(() => {
+    if (
+      !currentUser?.email ||
+      temples.length === 0
+    ) {
+      return
+    }
+
+    setSavedTemples((previous) => {
+      const validSavedTemples =
+        previous.filter((savedTemple) => {
+          const matchingTemple =
+            temples.find(
+              (temple) =>
+                temple.name ===
+                savedTemple.name
+            )
+
+          if (!matchingTemple) {
+            return false
+          }
+
+          const status =
+            templeApprovalStatus[
+              matchingTemple.name
+            ] ||
+            matchingTemple.approvalStatus ||
+            'Approved'
+
+          return status === 'Approved'
+        })
+
+      if (
+        validSavedTemples.length !==
+        previous.length
+      ) {
+        saveSavedTemplesToStorage(
+          validSavedTemples
+        )
+      }
+
+      return validSavedTemples
+    })
+  }, [
+    temples,
+    templeApprovalStatus,
+    currentUser?.email
+  ])
+
+  // =========================================
+  // LOGIN
+  // =========================================
+
+  function handleLogin(user) {
+    setSavedTemples([])
+    setCurrentUser(user)
+    setActiveSection('home')
+  }
+
+  // =========================================
+  // LOGOUT
+  // =========================================
+
+  function handleLogout() {
+    localStorage.removeItem(
+      'heritageCurrentUser'
+    )
+
+    setSavedTemples([])
+    setCurrentUser(null)
+    setActiveSection('home')
+
+    alert(
+      'You have been logged out successfully.'
+    )
+  }
 
   // =========================================
   // LOAD TEMPLES FROM MONGODB
@@ -31,28 +226,41 @@ function App() {
     async function loadTemples() {
       try {
         const response = await fetch(
-          'http://localhost:5000/api/temples'
+          `${API_BASE_URL}/api/temples`
         )
 
-        const data = await response.json()
+        const data =
+          await response.json()
 
         if (data.success) {
-          const loadedTemples = data.temples.map((temple) => ({
-            ...temple,
-            approvalStatus:
-              temple.approvalStatus || 'Approved'
-          }))
+          const loadedTemples =
+            data.temples.map(
+              (temple) => ({
+                ...temple,
+                approvalStatus:
+                  temple.approvalStatus ||
+                  'Approved'
+              })
+            )
 
-          setTemples(loadedTemples)
+          setTemples(
+            loadedTemples
+          )
 
           const approvalMap = {}
 
-          loadedTemples.forEach((temple) => {
-            approvalMap[temple.name] =
-              temple.approvalStatus
-          })
+          loadedTemples.forEach(
+            (temple) => {
+              approvalMap[
+                temple.name
+              ] =
+                temple.approvalStatus
+            }
+          )
 
-          setTempleApprovalStatus(approvalMap)
+          setTempleApprovalStatus(
+            approvalMap
+          )
         }
       } catch (error) {
         console.error(
@@ -75,13 +283,16 @@ function App() {
     async function loadFestivals() {
       try {
         const response = await fetch(
-          'http://localhost:5000/api/festivals'
+          `${API_BASE_URL}/api/festivals`
         )
 
-        const data = await response.json()
+        const data =
+          await response.json()
 
         if (data.success) {
-          setFestivals(data.festivals)
+          setFestivals(
+            data.festivals
+          )
         }
       } catch (error) {
         console.error(
@@ -104,10 +315,11 @@ function App() {
     async function loadPilgrimage() {
       try {
         const response = await fetch(
-          'http://localhost:5000/api/pilgrimage'
+          `${API_BASE_URL}/api/pilgrimage`
         )
 
-        const data = await response.json()
+        const data =
+          await response.json()
 
         if (data.success) {
           setPilgrimagePlaces(
@@ -135,9 +347,12 @@ function App() {
     templeName,
     newStatus
   ) {
-    const temple = temples.find(
-      (item) => item.name === templeName
-    )
+    const temple =
+      temples.find(
+        (item) =>
+          item.name ===
+          templeName
+      )
 
     if (!temple) {
       alert('Temple not found.')
@@ -153,47 +368,68 @@ function App() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/temples/${temple._id}`,
+        `${API_BASE_URL}/api/temples/${temple._id}`,
         {
           method: 'PUT',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type':
+              'application/json'
           },
           body: JSON.stringify({
             ...temple,
-            approvalStatus: newStatus
+            approvalStatus:
+              newStatus
           })
         }
       )
 
-      const data = await response.json()
+      const data =
+        await response.json()
 
       if (!data.success) {
-        alert('Approval status update failed.')
+        alert(
+          'Approval status update failed.'
+        )
         return
       }
 
-      setTempleApprovalStatus((previous) => ({
-        ...previous,
-        [templeName]: newStatus
-      }))
+      setTempleApprovalStatus(
+        (previous) => ({
+          ...previous,
+          [templeName]:
+            newStatus
+        })
+      )
 
       setTemples((previous) =>
-        previous.map((item) =>
-          item.name === templeName
-            ? {
-                ...item,
-                approvalStatus: newStatus
-              }
-            : item
+        previous.map(
+          (item) =>
+            item.name === templeName
+              ? {
+                  ...item,
+                  approvalStatus:
+                    newStatus
+                }
+              : item
         )
       )
 
       if (newStatus !== 'Approved') {
-        setSavedTemples((previous) =>
-          previous.filter(
-            (item) => item.name !== templeName
-          )
+        setSavedTemples(
+          (previous) => {
+            const updatedSavedTemples =
+              previous.filter(
+                (item) =>
+                  item.name !==
+                  templeName
+              )
+
+            saveSavedTemplesToStorage(
+              updatedSavedTemples
+            )
+
+            return updatedSavedTemples
+          }
         )
       }
 
@@ -218,11 +454,16 @@ function App() {
 
   function toggleSave(temple) {
     const approvalStatus =
-      templeApprovalStatus[temple.name] ||
+      templeApprovalStatus[
+        temple.name
+      ] ||
       temple.approvalStatus ||
       'Approved'
 
-    if (approvalStatus !== 'Approved') {
+    if (
+      approvalStatus !==
+      'Approved'
+    ) {
       alert(
         'Only approved temples can be saved.'
       )
@@ -230,17 +471,34 @@ function App() {
     }
 
     setSavedTemples((previous) => {
-      const alreadySaved = previous.some(
-        (item) => item.name === temple.name
-      )
+      const alreadySaved =
+        previous.some(
+          (item) =>
+            item.name ===
+            temple.name
+        )
+
+      let updatedSavedTemples
 
       if (alreadySaved) {
-        return previous.filter(
-          (item) => item.name !== temple.name
-        )
+        updatedSavedTemples =
+          previous.filter(
+            (item) =>
+              item.name !==
+              temple.name
+          )
+      } else {
+        updatedSavedTemples = [
+          ...previous,
+          temple
+        ]
       }
 
-      return [...previous, temple]
+      saveSavedTemplesToStorage(
+        updatedSavedTemples
+      )
+
+      return updatedSavedTemples
     })
   }
 
@@ -248,19 +506,23 @@ function App() {
   // ADD TEMPLE TO MONGODB
   // =========================================
 
-  async function addTemple(newTemple) {
+  async function addTemple(
+    newTemple
+  ) {
     try {
       const templeToSave = {
         ...newTemple,
-        approvalStatus: 'Pending'
+        approvalStatus:
+          'Pending'
       }
 
       const response = await fetch(
-        'http://localhost:5000/api/temples',
+        `${API_BASE_URL}/api/temples`,
         {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type':
+              'application/json'
           },
           body: JSON.stringify(
             templeToSave
@@ -268,16 +530,20 @@ function App() {
         }
       )
 
-      const data = await response.json()
+      const data =
+        await response.json()
 
       if (!data.success) {
-        alert('Failed to add temple.')
+        alert(
+          'Failed to add temple.'
+        )
         return
       }
 
       const savedTemple = {
         ...data.temple,
-        approvalStatus: 'Pending'
+        approvalStatus:
+          'Pending'
       }
 
       setTemples((previous) => [
@@ -285,10 +551,13 @@ function App() {
         savedTemple
       ])
 
-      setTempleApprovalStatus((previous) => ({
-        ...previous,
-        [savedTemple.name]: 'Pending'
-      }))
+      setTempleApprovalStatus(
+        (previous) => ({
+          ...previous,
+          [savedTemple.name]:
+            'Pending'
+        })
+      )
 
       alert(
         'Temple has been successfully saved to MongoDB.'
@@ -308,17 +577,6 @@ function App() {
   // =========================================
   // UPDATE TEMPLE IN MONGODB
   // =========================================
-  //
-  // Admin.jsx sends:
-  //
-  // onUpdateTemple(
-  //   editTemple,
-  //   oldTempleName
-  // )
-  //
-  // So this function supports that order.
-  // It also supports the opposite order safely.
-  // =========================================
 
   async function updateTemple(
     firstArgument,
@@ -329,27 +587,40 @@ function App() {
 
     if (
       firstArgument &&
-      typeof firstArgument === 'object'
+      typeof firstArgument ===
+        'object'
     ) {
-      updatedTemple = firstArgument
-      oldTempleName = secondArgument
+      updatedTemple =
+        firstArgument
+
+      oldTempleName =
+        secondArgument
     } else {
-      oldTempleName = firstArgument
-      updatedTemple = secondArgument
+      oldTempleName =
+        firstArgument
+
+      updatedTemple =
+        secondArgument
     }
 
     if (
       !oldTempleName ||
       !updatedTemple ||
-      typeof updatedTemple !== 'object'
+      typeof updatedTemple !==
+        'object'
     ) {
-      alert('Invalid temple update data.')
+      alert(
+        'Invalid temple update data.'
+      )
       return
     }
 
-    const existingTemple = temples.find(
-      (item) => item.name === oldTempleName
-    )
+    const existingTemple =
+      temples.find(
+        (item) =>
+          item.name ===
+          oldTempleName
+      )
 
     if (!existingTemple) {
       alert('Temple not found.')
@@ -365,22 +636,26 @@ function App() {
 
     try {
       const approvalStatus =
-        templeApprovalStatus[oldTempleName] ||
+        templeApprovalStatus[
+          oldTempleName
+        ] ||
         existingTemple.approvalStatus ||
         'Approved'
 
       const templeToUpdate = {
         ...updatedTemple,
-        _id: existingTemple._id,
+        _id:
+          existingTemple._id,
         approvalStatus
       }
 
       const response = await fetch(
-        `http://localhost:5000/api/temples/${existingTemple._id}`,
+        `${API_BASE_URL}/api/temples/${existingTemple._id}`,
         {
           method: 'PUT',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type':
+              'application/json'
           },
           body: JSON.stringify(
             templeToUpdate
@@ -388,10 +663,13 @@ function App() {
         }
       )
 
-      const data = await response.json()
+      const data =
+        await response.json()
 
       if (!data.success) {
-        alert('Failed to update temple.')
+        alert(
+          'Failed to update temple.'
+        )
         return
       }
 
@@ -400,33 +678,52 @@ function App() {
       }
 
       setTemples((previous) =>
-        previous.map((item) =>
-          item.name === oldTempleName
-            ? finalTemple
-            : item
+        previous.map(
+          (item) =>
+            item.name ===
+            oldTempleName
+              ? finalTemple
+              : item
         )
       )
 
-      setSavedTemples((previous) =>
-        previous.map((item) =>
-          item.name === oldTempleName
-            ? finalTemple
-            : item
-        )
-      )
+      setSavedTemples(
+        (previous) => {
+          const updatedSavedTemples =
+            previous.map(
+              (item) =>
+                item.name ===
+                oldTempleName
+                  ? finalTemple
+                  : item
+            )
 
-      setTempleApprovalStatus((previous) => {
-        const updated = {
-          ...previous
+          saveSavedTemplesToStorage(
+            updatedSavedTemples
+          )
+
+          return updatedSavedTemples
         }
+      )
 
-        delete updated[oldTempleName]
+      setTempleApprovalStatus(
+        (previous) => {
+          const updated = {
+            ...previous
+          }
 
-        updated[finalTemple.name] =
-          approvalStatus
+          delete updated[
+            oldTempleName
+          ]
 
-        return updated
-      })
+          updated[
+            finalTemple.name
+          ] =
+            approvalStatus
+
+          return updated
+        }
+      )
 
       alert(
         'Temple has been successfully updated in MongoDB.'
@@ -447,10 +744,14 @@ function App() {
   // DELETE TEMPLE FROM MONGODB
   // =========================================
 
-  async function deleteTemple(templeName) {
-    const temple = temples.find(
-      (item) => item.name === templeName
-    )
+  async function deleteTemple(
+    templeName
+  ) {
+    const temple =
+      temples.find(
+        (item) =>
+          item.name === templeName
+      )
 
     if (!temple) {
       alert('Temple not found.')
@@ -464,50 +765,72 @@ function App() {
       return
     }
 
-    const shouldDelete = window.confirm(
-      `Are you sure you want to delete "${templeName}"?`
-    )
+    const shouldDelete =
+      window.confirm(
+        `Are you sure you want to delete "${templeName}"?`
+      )
 
     if (!shouldDelete) {
       return
     }
 
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/temples/${temple._id}`,
-        {
-          method: 'DELETE'
-        }
-      )
+      const response =
+        await fetch(
+          `${API_BASE_URL}/api/temples/${temple._id}`,
+          {
+            method: 'DELETE'
+          }
+        )
 
-      const data = await response.json()
+      const data =
+        await response.json()
 
       if (!data.success) {
-        alert('Failed to delete temple.')
+        alert(
+          'Failed to delete temple.'
+        )
         return
       }
 
       setTemples((previous) =>
         previous.filter(
-          (item) => item.name !== templeName
+          (item) =>
+            item.name !==
+            templeName
         )
       )
 
-      setSavedTemples((previous) =>
-        previous.filter(
-          (item) => item.name !== templeName
-        )
-      )
+      setSavedTemples(
+        (previous) => {
+          const updatedSavedTemples =
+            previous.filter(
+              (item) =>
+                item.name !==
+                templeName
+            )
 
-      setTempleApprovalStatus((previous) => {
-        const updated = {
-          ...previous
+          saveSavedTemplesToStorage(
+            updatedSavedTemples
+          )
+
+          return updatedSavedTemples
         }
+      )
 
-        delete updated[templeName]
+      setTempleApprovalStatus(
+        (previous) => {
+          const updated = {
+            ...previous
+          }
 
-        return updated
-      })
+          delete updated[
+            templeName
+          ]
+
+          return updated
+        }
+      )
 
       alert(
         'Temple has been successfully deleted from MongoDB.'
@@ -528,25 +851,32 @@ function App() {
   // ADD FESTIVAL TO MONGODB
   // =========================================
 
-  async function addFestival(newFestival) {
+  async function addFestival(
+    newFestival
+  ) {
     try {
-      const response = await fetch(
-        'http://localhost:5000/api/festivals',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(
-            newFestival
-          )
-        }
-      )
+      const response =
+        await fetch(
+          `${API_BASE_URL}/api/festivals`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type':
+                'application/json'
+            },
+            body: JSON.stringify(
+              newFestival
+            )
+          }
+        )
 
-      const data = await response.json()
+      const data =
+        await response.json()
 
       if (!data.success) {
-        alert('Failed to add festival.')
+        alert(
+          'Failed to add festival.'
+        )
         return
       }
 
@@ -583,32 +913,45 @@ function App() {
 
     if (
       firstArgument &&
-      typeof firstArgument === 'object'
+      typeof firstArgument ===
+        'object'
     ) {
-      updatedFestival = firstArgument
-      oldFestivalName = secondArgument
+      updatedFestival =
+        firstArgument
+
+      oldFestivalName =
+        secondArgument
     } else {
-      oldFestivalName = firstArgument
-      updatedFestival = secondArgument
+      oldFestivalName =
+        firstArgument
+
+      updatedFestival =
+        secondArgument
     }
 
     if (
       !oldFestivalName ||
       !updatedFestival ||
-      typeof updatedFestival !== 'object'
+      typeof updatedFestival !==
+        'object'
     ) {
-      alert('Invalid festival update data.')
+      alert(
+        'Invalid festival update data.'
+      )
       return
     }
 
     const existingFestival =
       festivals.find(
         (festival) =>
-          festival.name === oldFestivalName
+          festival.name ===
+          oldFestivalName
       )
 
     if (!existingFestival) {
-      alert('Festival not found.')
+      alert(
+        'Festival not found.'
+      )
       return
     }
 
@@ -622,34 +965,42 @@ function App() {
     try {
       const festivalToUpdate = {
         ...updatedFestival,
-        _id: existingFestival._id
+        _id:
+          existingFestival._id
       }
 
-      const response = await fetch(
-        `http://localhost:5000/api/festivals/${existingFestival._id}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(
-            festivalToUpdate
-          )
-        }
-      )
+      const response =
+        await fetch(
+          `${API_BASE_URL}/api/festivals/${existingFestival._id}`,
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type':
+                'application/json'
+            },
+            body: JSON.stringify(
+              festivalToUpdate
+            )
+          }
+        )
 
-      const data = await response.json()
+      const data =
+        await response.json()
 
       if (!data.success) {
-        alert('Failed to update festival.')
+        alert(
+          'Failed to update festival.'
+        )
         return
       }
 
       setFestivals((previous) =>
-        previous.map((festival) =>
-          festival.name === oldFestivalName
-            ? festivalToUpdate
-            : festival
+        previous.map(
+          (festival) =>
+            festival.name ===
+            oldFestivalName
+              ? festivalToUpdate
+              : festival
         )
       )
 
@@ -675,12 +1026,17 @@ function App() {
   async function deleteFestival(
     festivalName
   ) {
-    const festival = festivals.find(
-      (item) => item.name === festivalName
-    )
+    const festival =
+      festivals.find(
+        (item) =>
+          item.name ===
+          festivalName
+      )
 
     if (!festival) {
-      alert('Festival not found.')
+      alert(
+        'Festival not found.'
+      )
       return
     }
 
@@ -691,33 +1047,39 @@ function App() {
       return
     }
 
-    const shouldDelete = window.confirm(
-      `Are you sure you want to delete "${festivalName}"?`
-    )
+    const shouldDelete =
+      window.confirm(
+        `Are you sure you want to delete "${festivalName}"?`
+      )
 
     if (!shouldDelete) {
       return
     }
 
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/festivals/${festival._id}`,
-        {
-          method: 'DELETE'
-        }
-      )
+      const response =
+        await fetch(
+          `${API_BASE_URL}/api/festivals/${festival._id}`,
+          {
+            method: 'DELETE'
+          }
+        )
 
-      const data = await response.json()
+      const data =
+        await response.json()
 
       if (!data.success) {
-        alert('Failed to delete festival.')
+        alert(
+          'Failed to delete festival.'
+        )
         return
       }
 
       setFestivals((previous) =>
         previous.filter(
           (item) =>
-            item.name !== festivalName
+            item.name !==
+            festivalName
         )
       )
 
@@ -744,20 +1106,23 @@ function App() {
     newPilgrimage
   ) {
     try {
-      const response = await fetch(
-        'http://localhost:5000/api/pilgrimage',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(
-            newPilgrimage
-          )
-        }
-      )
+      const response =
+        await fetch(
+          `${API_BASE_URL}/api/pilgrimage`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type':
+                'application/json'
+            },
+            body: JSON.stringify(
+              newPilgrimage
+            )
+          }
+        )
 
-      const data = await response.json()
+      const data =
+        await response.json()
 
       if (!data.success) {
         alert(
@@ -766,10 +1131,12 @@ function App() {
         return
       }
 
-      setPilgrimagePlaces((previous) => [
-        ...previous,
-        data.pilgrimage
-      ])
+      setPilgrimagePlaces(
+        (previous) => [
+          ...previous,
+          data.pilgrimage
+        ]
+      )
 
       alert(
         'Pilgrimage place has been successfully saved to MongoDB.'
@@ -799,28 +1166,39 @@ function App() {
 
     if (
       firstArgument &&
-      typeof firstArgument === 'object'
+      typeof firstArgument ===
+        'object'
     ) {
-      updatedPilgrimage = firstArgument
-      oldPilgrimageName = secondArgument
+      updatedPilgrimage =
+        firstArgument
+
+      oldPilgrimageName =
+        secondArgument
     } else {
-      oldPilgrimageName = firstArgument
-      updatedPilgrimage = secondArgument
+      oldPilgrimageName =
+        firstArgument
+
+      updatedPilgrimage =
+        secondArgument
     }
 
     if (
       !oldPilgrimageName ||
       !updatedPilgrimage ||
-      typeof updatedPilgrimage !== 'object'
+      typeof updatedPilgrimage !==
+        'object'
     ) {
-      alert('Invalid pilgrimage update data.')
+      alert(
+        'Invalid pilgrimage update data.'
+      )
       return
     }
 
     const existingPilgrimage =
       pilgrimagePlaces.find(
         (place) =>
-          place.name === oldPilgrimageName
+          place.name ===
+          oldPilgrimageName
       )
 
     if (!existingPilgrimage) {
@@ -840,23 +1218,27 @@ function App() {
     try {
       const pilgrimageToUpdate = {
         ...updatedPilgrimage,
-        _id: existingPilgrimage._id
+        _id:
+          existingPilgrimage._id
       }
 
-      const response = await fetch(
-        `http://localhost:5000/api/pilgrimage/${existingPilgrimage._id}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(
-            pilgrimageToUpdate
-          )
-        }
-      )
+      const response =
+        await fetch(
+          `${API_BASE_URL}/api/pilgrimage/${existingPilgrimage._id}`,
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type':
+                'application/json'
+            },
+            body: JSON.stringify(
+              pilgrimageToUpdate
+            )
+          }
+        )
 
-      const data = await response.json()
+      const data =
+        await response.json()
 
       if (!data.success) {
         alert(
@@ -865,12 +1247,15 @@ function App() {
         return
       }
 
-      setPilgrimagePlaces((previous) =>
-        previous.map((place) =>
-          place.name === oldPilgrimageName
-            ? pilgrimageToUpdate
-            : place
-        )
+      setPilgrimagePlaces(
+        (previous) =>
+          previous.map(
+            (place) =>
+              place.name ===
+              oldPilgrimageName
+                ? pilgrimageToUpdate
+                : place
+          )
       )
 
       alert(
@@ -898,7 +1283,8 @@ function App() {
     const pilgrimage =
       pilgrimagePlaces.find(
         (place) =>
-          place.name === pilgrimageName
+          place.name ===
+          pilgrimageName
       )
 
     if (!pilgrimage) {
@@ -915,23 +1301,26 @@ function App() {
       return
     }
 
-    const shouldDelete = window.confirm(
-      `Are you sure you want to delete "${pilgrimageName}"?`
-    )
+    const shouldDelete =
+      window.confirm(
+        `Are you sure you want to delete "${pilgrimageName}"?`
+      )
 
     if (!shouldDelete) {
       return
     }
 
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/pilgrimage/${pilgrimage._id}`,
-        {
-          method: 'DELETE'
-        }
-      )
+      const response =
+        await fetch(
+          `${API_BASE_URL}/api/pilgrimage/${pilgrimage._id}`,
+          {
+            method: 'DELETE'
+          }
+        )
 
-      const data = await response.json()
+      const data =
+        await response.json()
 
       if (!data.success) {
         alert(
@@ -940,11 +1329,13 @@ function App() {
         return
       }
 
-      setPilgrimagePlaces((previous) =>
-        previous.filter(
-          (place) =>
-            place.name !== pilgrimageName
-        )
+      setPilgrimagePlaces(
+        (previous) =>
+          previous.filter(
+            (place) =>
+              place.name !==
+              pilgrimageName
+          )
       )
 
       alert(
@@ -969,29 +1360,52 @@ function App() {
   function removeSavedTemple(
     templeName
   ) {
-    setSavedTemples((previous) =>
-      previous.filter(
-        (item) => item.name !== templeName
+    setSavedTemples((previous) => {
+      const updatedSavedTemples =
+        previous.filter(
+          (item) =>
+            item.name !==
+            templeName
+        )
+
+      saveSavedTemplesToStorage(
+        updatedSavedTemples
       )
-    )
+
+      return updatedSavedTemples
+    })
   }
 
   // =========================================
   // ONLY APPROVED TEMPLES ARE PUBLIC
   // =========================================
 
-  const approvedTemples = temples.filter(
-    (temple) => {
-      const status =
-        templeApprovalStatus[
-          temple.name
-        ] ||
-        temple.approvalStatus ||
-        'Approved'
+  const approvedTemples =
+    temples.filter(
+      (temple) => {
+        const status =
+          templeApprovalStatus[
+            temple.name
+          ] ||
+          temple.approvalStatus ||
+          'Approved'
 
-      return status === 'Approved'
-    }
-  )
+        return status ===
+          'Approved'
+      }
+    )
+
+  // =========================================
+  // SHOW LOGIN / REGISTER PAGE
+  // =========================================
+
+  if (!currentUser) {
+    return (
+      <Auth
+        onLogin={handleLogin}
+      />
+    )
+  }
 
   return (
     <div className="app">
@@ -1010,17 +1424,19 @@ function App() {
         >
 
           <span className="logo-icon">
-            🛕
+            🏛️
           </span>
 
           <div>
+
             <strong>
-              Temple Yatra
+              Heritage Learning Hub
             </strong>
 
             <small>
-              India's Sacred Heritage
+              India's Cultural Heritage
             </small>
+
           </div>
 
         </div>
@@ -1029,12 +1445,15 @@ function App() {
 
           <button
             className={
-              activeSection === 'home'
+              activeSection ===
+              'home'
                 ? 'active'
                 : ''
             }
             onClick={() =>
-              setActiveSection('home')
+              setActiveSection(
+                'home'
+              )
             }
           >
             Home
@@ -1042,12 +1461,31 @@ function App() {
 
           <button
             className={
-              activeSection === 'temples'
+              activeSection ===
+              'learning'
                 ? 'active'
                 : ''
             }
             onClick={() =>
-              setActiveSection('temples')
+              setActiveSection(
+                'learning'
+              )
+            }
+          >
+            Learning
+          </button>
+
+          <button
+            className={
+              activeSection ===
+              'temples'
+                ? 'active'
+                : ''
+            }
+            onClick={() =>
+              setActiveSection(
+                'temples'
+              )
             }
           >
             Temples
@@ -1055,12 +1493,15 @@ function App() {
 
           <button
             className={
-              activeSection === 'pilgrimage'
+              activeSection ===
+              'pilgrimage'
                 ? 'active'
                 : ''
             }
             onClick={() =>
-              setActiveSection('pilgrimage')
+              setActiveSection(
+                'pilgrimage'
+              )
             }
           >
             Pilgrimage
@@ -1068,12 +1509,15 @@ function App() {
 
           <button
             className={
-              activeSection === 'festivals'
+              activeSection ===
+              'festivals'
                 ? 'active'
                 : ''
             }
             onClick={() =>
-              setActiveSection('festivals')
+              setActiveSection(
+                'festivals'
+              )
             }
           >
             Festivals
@@ -1081,12 +1525,15 @@ function App() {
 
           <button
             className={
-              activeSection === 'guidelines'
+              activeSection ===
+              'guidelines'
                 ? 'active'
                 : ''
             }
             onClick={() =>
-              setActiveSection('guidelines')
+              setActiveSection(
+                'guidelines'
+              )
             }
           >
             Guidelines
@@ -1094,31 +1541,113 @@ function App() {
 
           <button
             className={
-              activeSection === 'saved'
+              activeSection ===
+              'saved'
                 ? 'active'
                 : ''
             }
             onClick={() =>
-              setActiveSection('saved')
+              setActiveSection(
+                'saved'
+              )
             }
           >
             Saved
           </button>
 
-          <button
-            className={
-              activeSection === 'admin'
-                ? 'active'
-                : ''
-            }
-            onClick={() =>
-              setActiveSection('admin')
-            }
-          >
-            Admin
-          </button>
+          {currentUser.role ===
+            'Admin' && (
+            <button
+              className={
+                activeSection ===
+                'admin'
+                  ? 'active'
+                  : ''
+              }
+              onClick={() =>
+                setActiveSection(
+                  'admin'
+                )
+              }
+            >
+              Admin
+            </button>
+          )}
 
         </nav>
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems:
+              'center',
+            gap: '10px',
+            marginLeft:
+              '15px'
+          }}
+        >
+
+          <div
+            style={{
+              display:
+                'flex',
+              flexDirection:
+                'column',
+              alignItems:
+                'flex-end'
+            }}
+          >
+
+            <strong
+              style={{
+                color:
+                  '#4b2415',
+                fontSize:
+                  '14px'
+              }}
+            >
+              {currentUser.name}
+            </strong>
+
+            <span
+              style={{
+                color:
+                  '#8d3f22',
+                fontSize:
+                  '12px'
+              }}
+            >
+              {currentUser.role}
+            </span>
+
+          </div>
+
+          <button
+            type="button"
+            onClick={
+              handleLogout
+            }
+            style={{
+              border:
+                '1px solid #dfc9b8',
+              background:
+                '#ffffff',
+              color:
+                '#8d3f22',
+              padding:
+                '8px 12px',
+              borderRadius:
+                '7px',
+              fontWeight:
+                '600',
+              cursor:
+                'pointer'
+            }}
+          >
+            Logout
+          </button>
+
+        </div>
 
       </header>
 
@@ -1132,28 +1661,36 @@ function App() {
             HOME
             ========================================= */}
 
-        {activeSection === 'home' && (
+        {activeSection ===
+          'home' && (
           <section className="hero-section">
 
             <div className="hero-content">
 
               <p className="hero-label">
-                DISCOVER INDIA'S SACRED HERITAGE
+                DISCOVER INDIA'S CULTURAL HERITAGE
               </p>
 
               <h1>
                 Explore India's
                 <br />
                 <span>
-                  Sacred Temples
+                  Cultural Heritage
                 </span>
               </h1>
 
               <p className="hero-description">
-                Discover the history, traditions,
-                festivals, pilgrimage routes and
-                visitor information of India's
-                sacred temples.
+                Learn about India's
+                temples,
+                traditions,
+                festivals,
+                pilgrimage
+                routes and
+                cultural heritage
+                through
+                a structured
+                digital learning
+                platform.
               </p>
 
               <div className="hero-buttons">
@@ -1161,19 +1698,23 @@ function App() {
                 <button
                   className="primary-button"
                   onClick={() =>
-                    setActiveSection('temples')
+                    setActiveSection(
+                      'temples'
+                    )
                   }
                 >
-                  Explore Temples
+                  Explore Heritage
                 </button>
 
                 <button
                   className="secondary-button"
                   onClick={() =>
-                    setActiveSection('pilgrimage')
+                    setActiveSection(
+                      'pilgrimage'
+                    )
                   }
                 >
-                  Plan Pilgrimage
+                  Explore Pilgrimage
                 </button>
 
               </div>
@@ -1183,7 +1724,7 @@ function App() {
             <div className="hero-visual">
 
               <div className="hero-temple-icon">
-                🛕
+                🏛️
               </div>
 
             </div>
@@ -1192,16 +1733,28 @@ function App() {
         )}
 
         {/* =========================================
+            LEARNING HUB
+            ========================================= */}
+
+        {activeSection ===
+          'learning' && (
+          <LearningHub />
+        )}
+
+        {/* =========================================
             TEMPLES
             ========================================= */}
 
-        {activeSection === 'temples' && (
+        {activeSection ===
+          'temples' && (
           <>
             {isLoadingTemples ? (
               <div
                 style={{
-                  padding: '40px',
-                  textAlign: 'center'
+                  padding:
+                    '40px',
+                  textAlign:
+                    'center'
                 }}
               >
 
@@ -1216,9 +1769,15 @@ function App() {
               </div>
             ) : (
               <Temples
-                temples={approvedTemples}
-                savedTemples={savedTemples}
-                onToggleSave={toggleSave}
+                temples={
+                  approvedTemples
+                }
+                savedTemples={
+                  savedTemples
+                }
+                onToggleSave={
+                  toggleSave
+                }
               />
             )}
           </>
@@ -1228,13 +1787,16 @@ function App() {
             PILGRIMAGE
             ========================================= */}
 
-        {activeSection === 'pilgrimage' && (
+        {activeSection ===
+          'pilgrimage' && (
           <>
             {isLoadingPilgrimage ? (
               <div
                 style={{
-                  padding: '40px',
-                  textAlign: 'center'
+                  padding:
+                    '40px',
+                  textAlign:
+                    'center'
                 }}
               >
 
@@ -1261,13 +1823,16 @@ function App() {
             FESTIVALS
             ========================================= */}
 
-        {activeSection === 'festivals' && (
+        {activeSection ===
+          'festivals' && (
           <>
             {isLoadingFestivals ? (
               <div
                 style={{
-                  padding: '40px',
-                  textAlign: 'center'
+                  padding:
+                    '40px',
+                  textAlign:
+                    'center'
                 }}
               >
 
@@ -1282,7 +1847,9 @@ function App() {
               </div>
             ) : (
               <Festivals
-                festivals={festivals}
+                festivals={
+                  festivals
+                }
               />
             )}
           </>
@@ -1292,7 +1859,8 @@ function App() {
             GUIDELINES
             ========================================= */}
 
-        {activeSection === 'guidelines' && (
+        {activeSection ===
+          'guidelines' && (
           <Guidelines />
         )}
 
@@ -1300,10 +1868,15 @@ function App() {
             SAVED TEMPLES
             ========================================= */}
 
-        {activeSection === 'saved' && (
+        {activeSection ===
+          'saved' && (
           <SavedTemples
-            savedTemples={savedTemples}
-            onRemove={removeSavedTemple}
+            savedTemples={
+              savedTemples
+            }
+            onRemove={
+              removeSavedTemple
+            }
           />
         )}
 
@@ -1311,61 +1884,68 @@ function App() {
             ADMIN
             ========================================= */}
 
-        {activeSection === 'admin' && (
-          <Admin
-            temples={temples}
+        {activeSection ===
+          'admin' &&
+          currentUser.role ===
+            'Admin' && (
+            <Admin
+              temples={
+                temples
+              }
 
-            onAddTemple={
-              addTemple
-            }
+              onAddTemple={
+                addTemple
+              }
 
-            onUpdateTemple={
-              updateTemple
-            }
+              onUpdateTemple={
+                updateTemple
+              }
 
-            onDeleteTemple={
-              deleteTemple
-            }
+              onDeleteTemple={
+                deleteTemple
+              }
 
-            templeApprovalStatus={
-              templeApprovalStatus
-            }
+              templeApprovalStatus={
+                templeApprovalStatus
+              }
 
-            onTempleApprovalChange={
-              handleTempleApprovalChange
-            }
+              onTempleApprovalChange={
+                handleTempleApprovalChange
+              }
 
-            festivals={festivals}
+              festivals={
+                festivals
+              }
 
-            onAddFestival={
-              addFestival
-            }
+              onAddFestival={
+                addFestival
+              }
 
-            onUpdateFestival={
-              updateFestival
-            }
+              onUpdateFestival={
+                updateFestival
+              }
 
-            onDeleteFestival={
-              deleteFestival
-            }
+              onDeleteFestival={
+                deleteFestival
+              }
 
-            pilgrimagePlaces={
-              pilgrimagePlaces
-            }
+              pilgrimagePlaces={
+                pilgrimagePlaces
+              }
 
-            onAddPilgrimage={
-              addPilgrimage
-            }
+              onAddPilgrimage={
+                addPilgrimage
+              }
 
-            onUpdatePilgrimage={
-              updatePilgrimage
-            }
+              onUpdatePilgrimage={
+                updatePilgrimage
+              }
 
-            onDeletePilgrimage={
-              deletePilgrimage
-            }
-          />
-        )}
+              onDeletePilgrimage={
+                deletePilgrimage
+              }
+            />
+          )}
 
       </main>
 
@@ -1378,12 +1958,12 @@ function App() {
         <div>
 
           <strong>
-            Temple Yatra
+            Heritage Learning Hub
           </strong>
 
           <p>
-            India's Sacred Heritage &
-            Pilgrimage Information Portal
+            India's Cultural Heritage
+            Learning Platform
           </p>
 
         </div>
@@ -1391,7 +1971,7 @@ function App() {
         <div>
 
           <p>
-            © 2026 Temple Yatra
+            © 2026 Heritage Learning Hub
           </p>
 
         </div>

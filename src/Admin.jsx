@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './Admin.css'
+import API_BASE_URL from './config'
 
 function Admin({
   temples,
@@ -21,6 +22,225 @@ function Admin({
 }) {
 
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  // User management
+  const [users, setUsers] = useState([])
+  const [showAllUsers, setShowAllUsers] = useState(false)
+
+  // Content accuracy feedback
+  const [feedbackItems, setFeedbackItems] = useState([])
+  const [showAllFeedback, setShowAllFeedback] = useState(false)
+
+  useEffect(() => {
+    loadUsers()
+    loadFeedback()
+  }, [])
+
+  function loadUsers() {
+    try {
+      const storedUsers = JSON.parse(
+        localStorage.getItem('heritageUsers') || '[]'
+      )
+
+      setUsers(Array.isArray(storedUsers) ? storedUsers : [])
+    } catch (error) {
+      console.error('Failed to load users:', error)
+      setUsers([])
+    }
+  }
+
+  async function loadFeedback() {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/feedback`
+      )
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || 'Failed to fetch feedback'
+        )
+      }
+
+      setFeedbackItems(data.feedback || [])
+    } catch (error) {
+      console.error(
+        'Feedback loading error:',
+        error
+      )
+    }
+  }
+
+  async function handleFeedbackStatusChange(
+    feedbackId,
+    status
+  ) {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/feedback/${feedbackId}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ status })
+        }
+      )
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+          'Failed to update feedback status'
+        )
+      }
+
+      setFeedbackItems((previous) =>
+        previous.map((item) =>
+          item._id === feedbackId
+            ? { ...item, status }
+            : item
+        )
+      )
+    } catch (error) {
+      console.error(
+        'Feedback status update error:',
+        error
+      )
+
+      alert(
+        'Unable to update feedback status.'
+      )
+    }
+  }
+
+  async function handleDeleteFeedback(feedbackId) {
+    const shouldDelete = window.confirm(
+      'Are you sure you want to delete this feedback?'
+    )
+
+    if (!shouldDelete) {
+      return
+    }
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/feedback/${feedbackId}`,
+        {
+          method: 'DELETE'
+        }
+      )
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || 'Failed to delete feedback'
+        )
+      }
+
+      setFeedbackItems((previous) =>
+        previous.filter(
+          (item) => item._id !== feedbackId
+        )
+      )
+
+      alert('Feedback deleted successfully.')
+    } catch (error) {
+      console.error(
+        'Feedback delete error:',
+        error
+      )
+
+      alert('Unable to delete feedback.')
+    }
+  }
+
+  function getLearningProgress(email) {
+    try {
+      const savedProgress = localStorage.getItem(
+        `heritageLearningProgress_${email}`
+      )
+
+      if (!savedProgress) {
+        return 0
+      }
+
+      const progress = JSON.parse(savedProgress)
+
+      if (Array.isArray(progress)) {
+        const completedItems = progress.filter(
+          (item) => item === true || item?.completed === true
+        ).length
+
+        return Math.min(100, Math.round((completedItems / 4) * 100))
+      }
+
+      if (progress && typeof progress === 'object') {
+        const values = Object.values(progress)
+        const completedItems = values.filter(
+          (item) =>
+            item === true ||
+            item?.completed === true ||
+            item?.status === 'completed'
+        ).length
+
+        return Math.min(100, Math.round((completedItems / 4) * 100))
+      }
+
+      return 0
+    } catch (error) {
+      console.error(
+        'Failed to read learning progress:',
+        error
+      )
+      return 0
+    }
+  }
+
+  function handleDeleteUser(email) {
+    const userToDelete = users.find(
+      (user) => user.email === email
+    )
+
+    if (!userToDelete) {
+      alert('User not found.')
+      return
+    }
+
+    if (userToDelete.role === 'Admin') {
+      alert('Admin accounts are protected and cannot be deleted from User Management.')
+      return
+    }
+
+    const shouldDelete = window.confirm(
+      `Are you sure you want to delete the account for "${userToDelete.name}"?`
+    )
+
+    if (!shouldDelete) {
+      return
+    }
+
+    const updatedUsers = users.filter(
+      (user) => user.email !== email
+    )
+
+    localStorage.setItem(
+      'heritageUsers',
+      JSON.stringify(updatedUsers)
+    )
+
+    localStorage.removeItem(
+      `heritageLearningProgress_${email}`
+    )
+
+    setUsers(updatedUsers)
+
+    alert('User account has been deleted successfully.')
+  }
+
 
   // Recent temple records
   const [showAllTemples, setShowAllTemples] = useState(false)
@@ -1259,7 +1479,47 @@ function Admin({
         <div className="admin-stat-card">
 
           <div className="admin-stat-icon">
+            👥
+          </div>
+
+          <div>
+
+            <span>
+              Registered Users
+            </span>
+
+            <h2>
+              {users.length}
+            </h2>
+
+          </div>
+
+        </div>
+
+        <div className="admin-stat-card">
+
+          <div className="admin-stat-icon">
             📋
+          </div>
+
+          <div>
+
+            <span>
+              Accuracy Feedback
+            </span>
+
+            <h2>
+              {feedbackItems.length}
+            </h2>
+
+          </div>
+
+        </div>
+
+        <div className="admin-stat-card">
+
+          <div className="admin-stat-icon">
+            📚
           </div>
 
           <div>
@@ -3087,11 +3347,492 @@ function Admin({
 
               </button>
 
+              {/* CONTENT ACCURACY FEEDBACK */}
+
+              <button
+                className="admin-action-card"
+                onClick={() =>
+                  document
+                    .getElementById(
+                      'content-accuracy-feedback-section'
+                    )
+                    ?.scrollIntoView({
+                      behavior: 'smooth'
+                    })
+                }
+              >
+
+                <span>
+                  📋
+                </span>
+
+                <div>
+
+                  <h3>
+                    Accuracy Feedback
+                  </h3>
+
+                  <p>
+                    Review student and teacher feedback about content accuracy.
+                  </p>
+
+                </div>
+
+              </button>
+
+              {/* USER MANAGEMENT */}
+
+              <button
+                className="admin-action-card"
+                onClick={() =>
+                  document
+                    .getElementById('user-management-section')
+                    ?.scrollIntoView({ behavior: 'smooth' })
+                }
+              >
+
+                <span>
+                  👥
+                </span>
+
+                <div>
+
+                  <h3>
+                    User Management
+                  </h3>
+
+                  <p>
+                    View registered users, roles and learning progress.
+                  </p>
+
+                </div>
+
+              </button>
+
             </div>
 
           </div>
 
         )}
+
+      {/* ================================
+          USER MANAGEMENT
+          ================================ */}
+
+      <div
+        id="user-management-section"
+        className="admin-section"
+        style={{ marginTop: '30px' }}
+      >
+
+        <div className="admin-section-header">
+
+          <div>
+
+            <p>
+              USER MANAGEMENT
+            </p>
+
+            <h2>
+              Registered Users
+            </h2>
+
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+
+            <button
+              className="view-all-button"
+              onClick={loadUsers}
+            >
+              Refresh Users
+            </button>
+
+            <button
+              className="view-all-button"
+              onClick={() =>
+                setShowAllUsers((previous) => !previous)
+              }
+            >
+              {showAllUsers ? 'Show Recent' : 'View All'}
+            </button>
+
+          </div>
+
+        </div>
+
+        {users.length === 0 ? (
+
+          <div className="admin-note">
+
+            <div className="admin-note-icon">
+              👥
+            </div>
+
+            <div>
+
+              <h3>
+                No Registered Users
+              </h3>
+
+              <p>
+                No user accounts are currently stored in the browser.
+              </p>
+
+            </div>
+
+          </div>
+
+        ) : (
+
+          <div className="admin-table-wrapper">
+
+            <table className="admin-table">
+
+              <thead>
+
+                <tr>
+
+                  <th>
+                    User Name
+                  </th>
+
+                  <th>
+                    Email
+                  </th>
+
+                  <th>
+                    Role
+                  </th>
+
+                  <th>
+                    Learning Progress
+                  </th>
+
+                  <th>
+                    Action
+                  </th>
+
+                </tr>
+
+              </thead>
+
+              <tbody>
+
+                {(showAllUsers ? users : users.slice(0, 5)).map((user) => {
+                  const progress = getLearningProgress(user.email)
+
+                  return (
+                    <tr key={user.email}>
+
+                      <td>
+                        {user.name || 'Not provided'}
+                      </td>
+
+                      <td>
+                        {user.email}
+                      </td>
+
+                      <td>
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            padding: '5px 9px',
+                            borderRadius: '999px',
+                            background: '#f3e6dc',
+                            color: '#7b351f',
+                            fontWeight: '600'
+                          }}
+                        >
+                          {user.role || 'Student'}
+                        </span>
+                      </td>
+
+                      <td>
+                        <div style={{ minWidth: '140px' }}>
+
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              marginBottom: '5px',
+                              fontSize: '12px',
+                              fontWeight: '600'
+                            }}
+                          >
+                            <span>{progress}%</span>
+                            <span>4 modules</span>
+                          </div>
+
+                          <div
+                            style={{
+                              height: '8px',
+                              borderRadius: '999px',
+                              background: '#eadfd6',
+                              overflow: 'hidden'
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: `${progress}%`,
+                                height: '100%',
+                                background: '#8d3f22',
+                                borderRadius: '999px'
+                              }}
+                            />
+                          </div>
+
+                        </div>
+                      </td>
+
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleDeleteUser(user.email)
+                          }
+                          disabled={user.role === 'Admin'}
+                          style={{
+                            border: '1px solid #dfc9b8',
+                            background: user.role === 'Admin' ? '#f1ece8' : '#ffffff',
+                            color: user.role === 'Admin' ? '#8d8178' : '#8d3f22',
+                            padding: '7px 10px',
+                            borderRadius: '7px',
+                            fontWeight: '600',
+                            cursor: user.role === 'Admin' ? 'not-allowed' : 'pointer'
+                          }}
+                        >
+                          {user.role === 'Admin' ? 'Protected' : 'Delete'}
+                        </button>
+                      </td>
+
+                    </tr>
+                  )
+                })}
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        )}
+
+      </div>
+
+      {/* ================================
+          CONTENT ACCURACY FEEDBACK
+          ================================ */}
+
+      <div
+        id="content-accuracy-feedback-section"
+        className="admin-section"
+        style={{ marginTop: '30px' }}
+      >
+
+        <div className="admin-section-header">
+
+          <div>
+
+            <p>
+              CONTENT QUALITY
+            </p>
+
+            <h2>
+              Content Accuracy Feedback
+            </h2>
+
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+
+            <button
+              className="view-all-button"
+              onClick={loadFeedback}
+            >
+              Refresh Feedback
+            </button>
+
+            <button
+              className="view-all-button"
+              onClick={() =>
+                setShowAllFeedback((previous) => !previous)
+              }
+            >
+              {showAllFeedback ? 'Show Recent' : 'View All'}
+            </button>
+
+          </div>
+
+        </div>
+
+        {feedbackItems.length === 0 ? (
+
+          <div className="admin-note">
+
+            <div className="admin-note-icon">
+              📋
+            </div>
+
+            <div>
+
+              <h3>
+                No Content Accuracy Feedback
+              </h3>
+
+              <p>
+                No student or teacher feedback has been submitted yet.
+              </p>
+
+            </div>
+
+          </div>
+
+        ) : (
+
+          <div className="admin-table-wrapper">
+
+            <table className="admin-table">
+
+              <thead>
+
+                <tr>
+
+                  <th>
+                    Temple
+                  </th>
+
+                  <th>
+                    User
+                  </th>
+
+                  <th>
+                    Email
+                  </th>
+
+                  <th>
+                    Feedback
+                  </th>
+
+                  <th>
+                    Submitted
+                  </th>
+
+                  <th>
+                    Status
+                  </th>
+
+                  <th>
+                    Action
+                  </th>
+
+                </tr>
+
+              </thead>
+
+              <tbody>
+
+                {(showAllFeedback
+                  ? feedbackItems
+                  : feedbackItems.slice(0, 5)
+                ).map((item) => (
+
+                  <tr key={item._id}>
+
+                    <td>
+                      {item.templeName || 'Not provided'}
+                    </td>
+
+                    <td>
+                      {item.userName || 'Not provided'}
+                    </td>
+
+                    <td>
+                      {item.userEmail || 'Not provided'}
+                    </td>
+
+                    <td
+                      style={{
+                        maxWidth: '300px',
+                        whiteSpace: 'normal'
+                      }}
+                    >
+                      {item.message || 'No message'}
+                    </td>
+
+                    <td>
+                      {item.createdAt
+                        ? new Date(item.createdAt).toLocaleString()
+                        : 'Not available'}
+                    </td>
+
+                    <td>
+
+                      <select
+                        value={item.status || 'Pending'}
+                        onChange={(e) =>
+                          handleFeedbackStatusChange(
+                            item._id,
+                            e.target.value
+                          )
+                        }
+                        style={{
+                          padding: '8px',
+                          borderRadius: '8px',
+                          border: '1px solid #d6d3d1',
+                          background: '#ffffff',
+                          cursor: 'pointer'
+                        }}
+                      >
+
+                        <option value="Pending">
+                          Pending
+                        </option>
+
+                        <option value="Reviewed">
+                          Reviewed
+                        </option>
+
+                        <option value="Resolved">
+                          Resolved
+                        </option>
+
+                      </select>
+
+                    </td>
+
+                    <td>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleDeleteFeedback(item._id)
+                        }
+                        style={{
+                          padding: '8px 12px',
+                          border: 'none',
+                          borderRadius: '8px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Delete
+                      </button>
+
+                    </td>
+
+                  </tr>
+
+                ))}
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        )}
+
+      </div>
 
       {/* ================================
           RECENT CONTENT
@@ -3277,10 +4018,8 @@ function Admin({
           </h3>
 
           <p>
-            <p>
             This dashboard is connected to the project backend.
             Temple records are stored and managed through the MongoDB database.
-            </p>
           </p>
 
         </div>

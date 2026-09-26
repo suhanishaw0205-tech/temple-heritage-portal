@@ -12,7 +12,6 @@ body {
   background: #fffaf2;
   color: #3e2116;
 
-  /* Prevent unwanted horizontal scrolling */
   overflow-x: hidden;
 }
 
@@ -39,20 +38,36 @@ button {
   min-height: 72px;
   width: 100%;
 
-  padding: 12px 6%;
+  padding: 12px 4%;
 
-  display: flex;
+  display: grid;
+
+  /*
+    Separate fixed spaces for:
+    1. Logo
+    2. Navigation
+    3. User / Logout
+  */
+  grid-template-columns: 365px minmax(0, 1fr) 220px;
+
   align-items: center;
-  justify-content: space-between;
 
-  gap: 25px;
+  column-gap: 18px;
 
   background: rgba(255, 250, 242, 0.97);
 
   border-bottom: 1px solid #eadbd0;
 }
 
+
+/* =========================================
+   LOGO
+========================================= */
+
 .logo {
+  width: 365px;
+  min-width: 365px;
+
   display: flex;
   align-items: center;
 
@@ -62,11 +77,14 @@ button {
 
   cursor: pointer;
 
-  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
 }
 
 .logo-icon {
   font-size: 34px;
+
+  flex-shrink: 0;
 }
 
 .logo strong {
@@ -74,6 +92,8 @@ button {
 
   font-size: 22px;
   font-weight: 700;
+
+  white-space: nowrap;
 }
 
 .logo small {
@@ -85,6 +105,8 @@ button {
 
   font-size: 14px;
   font-weight: 600;
+
+  white-space: nowrap;
 }
 
 
@@ -93,31 +115,53 @@ button {
 ========================================= */
 
 .navbar nav {
+  width: 100%;
+
   display: flex;
   align-items: center;
   justify-content: center;
 
-  gap: 8px;
+  gap: 3px;
 
   min-width: 0;
+
+  overflow: visible;
+
+  /*
+    Keep the complete navigation above
+    surrounding navbar elements.
+  */
+  position: relative;
+  z-index: 20;
+
+  pointer-events: auto;
 }
 
 .navbar nav button {
   border: none;
 
-  padding: 11px 15px;
+  padding: 10px 10px;
 
   background: transparent;
   color: #5d4035;
 
   border-radius: 8px;
 
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
 
   cursor: pointer;
 
   white-space: nowrap;
+
+  position: relative;
+  z-index: 21;
+
+  /*
+    Make sure the navigation buttons
+    receive mouse clicks.
+  */
+  pointer-events: auto;
 
   transition:
     background 0.2s ease,
@@ -133,6 +177,38 @@ button {
 .navbar nav button.active {
   background: #8d3f22;
   color: white;
+}
+
+
+/* =========================================
+   LOGGED-IN USER AREA
+========================================= */
+
+.navbar > div:last-child {
+  width: 220px;
+  min-width: 220px;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 10px;
+
+  position: relative;
+  z-index: 5;
+}
+
+.navbar > div:last-child button {
+  flex-shrink: 0;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  position: relative;
+  z-index: 6;
+
+  pointer-events: auto;
 }
 
 
@@ -474,22 +550,44 @@ button {
    LARGE TABLET
 ========================================= */
 
-@media (max-width: 1100px) {
+@media (max-width: 1200px) {
 
   .navbar {
-    padding: 12px 30px;
+    grid-template-columns: 320px minmax(0, 1fr) 200px;
 
-    gap: 18px;
+    column-gap: 12px;
+
+    padding: 12px 25px;
+  }
+
+  .logo {
+    width: 320px;
+    min-width: 320px;
+  }
+
+  .logo strong {
+    font-size: 20px;
+  }
+
+  .logo small {
+    font-size: 13px;
   }
 
   .navbar nav {
-    gap: 4px;
+    gap: 1px;
   }
 
   .navbar nav button {
-    padding: 10px 11px;
+    padding: 9px 8px;
 
-    font-size: 14px;
+    font-size: 13px;
+  }
+
+  .navbar > div:last-child {
+    width: 200px;
+    min-width: 200px;
+
+    gap: 7px;
   }
 
   .hero-section {
@@ -521,69 +619,18 @@ button {
 
 
 /* =========================================
-   TABLET
+   SMALL LAPTOP / TABLET
 ========================================= */
 
-@media (max-width: 1000px) {
+@media (max-width: 1050px) {
 
   .navbar {
-    padding: 12px 25px;
-
-    gap: 15px;
-  }
-
-  .navbar nav {
-    gap: 3px;
-  }
-
-  .navbar nav button {
-    padding: 10px 10px;
-
-    font-size: 14px;
-  }
-
-  .hero-section {
-    gap: 30px;
-
-    padding: 70px 5%;
-  }
-
-  .hero-content h1 {
-    font-size: 54px;
-  }
-
-  .hero-description {
-    font-size: 17px;
-  }
-
-  .hero-visual {
-    width: 270px;
-    height: 270px;
-  }
-
-  .hero-temple-icon {
-    width: 255px;
-    height: 255px;
-
-    font-size: 110px;
-  }
-
-  .festival-cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-
-/* =========================================
-   TABLET / SMALL LAPTOP
-========================================= */
-
-@media (max-width: 900px) {
-
-  .navbar {
+    display: flex;
     flex-direction: column;
 
     justify-content: center;
+
+    width: 100%;
 
     padding: 14px 20px;
 
@@ -592,24 +639,49 @@ button {
 
   .logo {
     width: 100%;
+    min-width: 0;
 
     justify-content: center;
+
+    text-align: center;
   }
 
   .navbar nav {
     width: 100%;
+
+    display: flex;
 
     flex-wrap: wrap;
 
     justify-content: center;
 
     gap: 6px;
+
+    position: relative;
+    z-index: 20;
+  }
+
+  .navbar > div:last-child {
+    width: 100%;
+    min-width: 0;
+
+    justify-content: center;
+
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    position: relative;
+    z-index: 5;
   }
 
   .navbar nav button {
     padding: 9px 12px;
 
     font-size: 14px;
+
+    position: relative;
+    z-index: 21;
   }
 
   .hero-section {
@@ -648,6 +720,10 @@ button {
 
     font-size: 105px;
   }
+
+  .festival-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 
@@ -680,6 +756,7 @@ button {
 
   .logo {
     width: 100%;
+    min-width: 0;
 
     justify-content: center;
 
@@ -712,6 +789,9 @@ button {
     gap: 7px;
 
     overflow: visible;
+
+    position: relative;
+    z-index: 20;
   }
 
   .navbar nav button {
@@ -722,6 +802,24 @@ button {
     font-size: 14px;
 
     white-space: nowrap;
+
+    position: relative;
+    z-index: 21;
+  }
+
+  .navbar > div:last-child {
+    width: 100%;
+    min-width: 0;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 8px;
   }
 
 
@@ -878,6 +976,8 @@ button {
   .logo {
     width: 100%;
 
+    min-width: 0;
+
     gap: 8px;
 
     justify-content: center;
@@ -905,6 +1005,9 @@ button {
     justify-content: center;
 
     gap: 6px;
+
+    position: relative;
+    z-index: 20;
   }
 
   .navbar nav button {
@@ -915,6 +1018,17 @@ button {
     font-size: 13px;
 
     white-space: nowrap;
+
+    position: relative;
+    z-index: 21;
+  }
+
+  .navbar > div:last-child {
+    width: 100%;
+
+    min-width: 0;
+
+    justify-content: center;
   }
 
 
@@ -1027,12 +1141,18 @@ button {
 
   .navbar nav {
     gap: 5px;
+
+    position: relative;
+    z-index: 20;
   }
 
   .navbar nav button {
     padding: 7px 8px;
 
     font-size: 12px;
+
+    position: relative;
+    z-index: 21;
   }
 
   .hero-section {
