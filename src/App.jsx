@@ -31,7 +31,7 @@ function App() {
     async function loadTemples() {
       try {
         const response = await fetch(
-          'http://localhost:5000/api/temples'
+        `${import.meta.env.VITE_API_URL}/api/temples`
         )
 
         const data = await response.json()
@@ -75,7 +75,7 @@ function App() {
     async function loadFestivals() {
       try {
         const response = await fetch(
-          'http://localhost:5000/api/festivals'
+        `${import.meta.env.VITE_API_URL}/api/festivals`
         )
 
         const data = await response.json()
@@ -104,7 +104,7 @@ function App() {
     async function loadPilgrimage() {
       try {
         const response = await fetch(
-          'http://localhost:5000/api/pilgrimage'
+         `${import.meta.env.VITE_API_URL}/api/pilgrimage`
         )
 
         const data = await response.json()
@@ -153,7 +153,7 @@ function App() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/temples/${temple._id}`,
+      `${import.meta.env.VITE_API_URL}/api/temples/${temple._id}`
         {
           method: 'PUT',
           headers: {
@@ -256,7 +256,7 @@ function App() {
       }
 
       const response = await fetch(
-        'http://localhost:5000/api/temples',
+     `${import.meta.env.VITE_API_URL}/api/temples`
         {
           method: 'POST',
           headers: {
@@ -376,7 +376,7 @@ function App() {
       }
 
       const response = await fetch(
-        `http://localhost:5000/api/temples/${existingTemple._id}`,
+     `${import.meta.env.VITE_API_URL}/api/temples/${existingTemple._id}`
         {
           method: 'PUT',
           headers: {
@@ -474,7 +474,7 @@ function App() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/temples/${temple._id}`,
+      `${import.meta.env.VITE_API_URL}/api/temples/${temple._id}`
         {
           method: 'DELETE'
         }
@@ -531,7 +531,7 @@ function App() {
   async function addFestival(newFestival) {
     try {
       const response = await fetch(
-        'http://localhost:5000/api/festivals',
+        `${import.meta.env.VITE_API_URL}/api/festivals`
         {
           method: 'POST',
           headers: {
