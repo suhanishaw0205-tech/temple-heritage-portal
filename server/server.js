@@ -172,7 +172,7 @@ app.delete('/api/temples/:id', async (req, res) => {
 })
 
 // SEED INITIAL TEMPLES
-app.get('/api/temples/seed', async (req, res) => {
+app.post('/api/temples/seed', async (req, res) => {
   try {
     const temples = [
       {
