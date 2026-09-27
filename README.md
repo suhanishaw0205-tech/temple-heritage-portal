@@ -1,16 +1,62 @@
-# React + Vite
+# Temple Heritage Portal
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Temple Heritage Portal is a full-stack web application for exploring India's temple heritage, festivals, and pilgrimage destinations.
 
-Currently, two official plugins are available:
+The project provides structured heritage information through a React frontend, an Express backend, and MongoDB for persistent data storage.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Live Application
 
-## React Compiler
+Frontend:
+https://temple-heritage-portal-five.vercel.app
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Backend:
+https://heritage-learning-hub-backend.onrender.com
 
-## Expanding the Oxlint configuration
+GitHub Repository:
+https://github.com/suhanishaw0205-tech/temple-heritage-portal
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Features
+
+- Explore heritage temples and their historical information
+- Browse major Indian festivals
+- Explore pilgrimage destinations
+- View temple details such as deity, history, timings, rituals, guidelines, and pilgrimage information
+- Add, update, and delete temple records through the backend API
+- Add, update, and delete festival records through the backend API
+- Add, update, and delete pilgrimage records through the backend API
+- Submit and manage content accuracy feedback
+- Responsive React-based user interface
+- REST API integration between frontend and backend
+
+## Technology Stack
+
+### Frontend
+- React
+- Vite
+- JavaScript
+- HTML
+- CSS
+
+### Backend
+- Node.js
+- Express.js
+- MongoDB
+- REST API
+
+### Deployment
+- Frontend: Vercel
+- Backend: Render
+- Database: MongoDB
+
+## Project Structure
+
+```text
+temple-heritage-portal/
+├── src/
+│   ├── App.jsx
+│   └── ...
+├── server/
+│   └── server.js
+├── package.json
+├── README.md
+└── ...
